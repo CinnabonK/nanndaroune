@@ -3,15 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>画像とテキストの横スクロール</title>
+    <title>中央配置と角丸の横スクロール</title>
+    <h3>made by @kiku_kick</h3>
     <style>
+        /* ページ全体を中央揃えにするためのスタイル */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* ビューポート全体の高さ */
+            margin: 0;
+            background-color: #f0f0f0; /* 背景色 */
+        }
+
         /* 親コンテナのスタイル */
         .carousel-container {
             width: 400px; /* 表示する領域の幅 */
-            height: 200px; /* 表示する領域の高さ */
+            height: 600px; /* 表示する領域の高さ */
             overflow: hidden;
             position: relative;
             border: 2px solid #ccc;
+            border-radius: 20px; /* 角を丸くする */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 少し影をつける */
+            background-color: white;
         }
 
         /* 子要素（スライド）のスタイル */
