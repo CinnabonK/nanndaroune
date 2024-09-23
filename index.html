@@ -3,44 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中央配置と角丸の横スクロール</title>
-    <h3>made by @kiku_kick</h3>
+    <title>中央強調の滑らかな横スクロール</title>
+    <br>
+    <h3>made by kiku_kick</h3>
     <style>
-        /* ページ全体を中央揃えにするためのスタイル */
         body {
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh; /* ビューポート全体の高さ */
+            height: 100vh;
             margin: 0;
-            background-color: #f0f0f0; /* 背景色 */
+            background-color: #f0f0f0;
         }
 
         /* 親コンテナのスタイル */
         .carousel-container {
-            width: 400px; /* 表示する領域の幅 */
-            height: 600px; /* 表示する領域の高さ */
+            width: 600px;
             overflow: hidden;
             position: relative;
             border: 2px solid #ccc;
-            border-radius: 20px; /* 角を丸くする */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 少し影をつける */
+            border-radius: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             background-color: white;
         }
 
         /* 子要素（スライド）のスタイル */
         .carousel-content {
             display: flex;
-            transition: transform 1s ease-in-out; /* スムーズなアニメーション */
-            /* 初期位置 */
-            transform: translateX(0);
+            transition: transform 1s ease-in-out;
+            will-change: transform;
         }
 
         /* 各アイテム（画像やテキスト）のスタイル */
         .carousel-item {
-            min-width: 100%; /* コンテナ全体に収まるように */
+            min-width: 33.33%; /* 3枚表示するために 1/3 の幅に設定 */
             box-sizing: border-box;
             text-align: center;
+            transition: opacity 1s ease-in-out, transform 1s ease-in-out; /* opacity と transform をスムーズに変更 */
         }
 
         /* 画像スタイル */
@@ -53,6 +52,18 @@
         .carousel-item p {
             font-size: 1.2em;
             margin: 20px 0;
+        }
+
+        /* 真ん中のスライドを強調するスタイル */
+        .active {
+            opacity: 1;
+            transform: scale(1.1); /* 中央のスライドを少し大きく表示 */
+        }
+
+        /* 両端のスライドを薄くするスタイル */
+        .inactive {
+            opacity: 0.5;
+            transform: scale(0.9); /* 両端のスライドを少し小さく表示 */
         }
     </style>
 </head>
@@ -80,29 +91,72 @@
             <div class="carousel-item">
                 <img src="image3.jpg" alt="画像3">
             </div>
+            <!-- スライド6: テキスト -->
+            <div class="carousel-item">
+                <p>これは3つ目のテキストです。</p>
+            </div>
         </div>
     </div>
 
     <script>
-        // 初期設定
-        let currentIndex = 0; // 現在表示されているスライドのインデックス
-        const slides = document.querySelectorAll('.carousel-item'); // スライド項目
-        const totalSlides = slides.length; // 全スライド数
-        const carouselContent = document.getElementById('carouselContent'); // コンテンツラッパー
+        let currentIndex = 0;
+        const slides = document.querySelectorAll('.carousel-item');
+        const totalSlides = slides.length;
+        const slidesPerView = 3;
+        const carouselContent = document.getElementById('carouselContent');
 
-        // スライドを切り替える関数
+        // 無限ループ用に最初のスライドを複製する
+        function cloneSlides() {
+            const firstSlide = slides[0].cloneNode(true);
+            const lastSlide = slides[totalSlides - 1].cloneNode(true);
+            carouselContent.appendChild(firstSlide);
+            carouselContent.insertBefore(lastSlide, slides[0]);
+        }
+
+        cloneSlides(); // クローンを作成して無限ループを可能にする
+
+        // スライドの初期位置を調整（クローン後）
+        let offset = 1; // クローン分の位置補正
+        carouselContent.style.transform = `translateX(-${offset * (100 / slidesPerView)}%)`;
+
+        // スライドを次に移動させる関数
         function moveToNextSlide() {
-            // 次のスライドに移動
             currentIndex++;
+            updateSlidePosition();
+
+            // クローン部分に到達したときの処理
             if (currentIndex >= totalSlides) {
-                currentIndex = 0; // 最後まで行ったら最初に戻る
+                setTimeout(() => {
+                    carouselContent.style.transition = 'none';
+                    currentIndex = 0; // 最初に戻る
+                    updateSlidePosition();
+                    setTimeout(() => {
+                        carouselContent.style.transition = 'transform 1s ease-in-out'; // アニメーションを戻す
+                    }, 50);
+                }, 1000); // アニメーションが終わるまで待つ
             }
-            const newTranslateX = -currentIndex * 100; // 各スライドの幅が100%なので、その倍数で移動
+        }
+
+        // スライドの位置と透明度を更新する関数
+        function updateSlidePosition() {
+            const newTranslateX = -(currentIndex + offset) * (100 / slidesPerView);
             carouselContent.style.transform = `translateX(${newTranslateX}%)`;
+
+            // 各スライドの透明度とサイズを更新
+            slides.forEach((slide, index) => {
+                const visibleIndex = (currentIndex + 1) % totalSlides; // 現在中央に来るスライド
+                if (index === visibleIndex) {
+                    slide.classList.add('active');
+                    slide.classList.remove('inactive');
+                } else {
+                    slide.classList.add('inactive');
+                    slide.classList.remove('active');
+                }
+            });
         }
 
         // 一定時間ごとにスライドを切り替える（3秒表示 + 1秒アニメーション）
-        setInterval(moveToNextSlide, 4000); // 4秒間隔（3秒待機 + 1秒アニメーション）
+        setInterval(moveToNextSlide, 4000);
     </script>
 
 </body>
